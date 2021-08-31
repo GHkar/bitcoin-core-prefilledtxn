@@ -24,16 +24,16 @@ CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock& block, bool f
         shorttxids(block.vtx.size() - 1), prefilledtxn(1), header(block) {
     FillShortTxIDSelector();
     //TODO: Use our mempool prior to block acceptance to predictively fill more than just the coinbase
-    size_t pfsize = 30;
+    size_t pfsize = 30;		//set up
     LogPrint(BCLog::NET, "KAR's Log Start\n");
-    if (block.vtx.size() < pfsize){
+    if (block.vtx.size() < pfsize){	// if the block.vtx.size is shorter than pfsize, resize prefileldtxn size and pfsize to block.vtx.size
 	    prefilledtxn.resize(block.vtx.size());
     	    pfsize = block.vtx.size();
     }
     else
 	    prefilledtxn.resize(pfsize);
 
-    if (block.vtx.size() == 1)
+    if (block.vtx.size() == 1)		 // the block include one transaction, that coinbase
     {
 	prefilledtxn[0] = {0, block.vtx[0]};
     	for (size_t i = 1; i < block.vtx.size(); i++) {
@@ -99,7 +99,7 @@ CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock& block, bool f
     	std::vector<int> prefilledindex;
     	std::vector<int>::iterator it;
 
-    	prefilledtxn[0] = {0, block.vtx[0]};
+    	prefilledtxn[0] = {0, block.vtx[0]};	 // input coinbase
 
     	for (size_t i = 1; i < pfsize; i++)
     	{
@@ -109,7 +109,7 @@ CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock& block, bool f
     	}
 
     	LogPrint(BCLog::NET, "KAR's Log Sorting prefilledtxn\n");
-
+	 // index list and prefilledtxn list sorting
     	sort(prefilledtxn.begin(), prefilledtxn.end(), compareIndex);
 	sort(prefilledindex.begin(), prefilledindex.end());
 
@@ -124,7 +124,7 @@ CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock& block, bool f
 	}
 
     	LogPrint(BCLog::NET, "KAR's Log Make Shortids\n");
-
+	 // except transactions that already input prefilledtxn and other transactions input in the shorttxids
     	size_t stindex = 0;
     	for (size_t i = 1; i < block.vtx.size(); i++) {
         	it = std::find(prefilledindex.begin(), prefilledindex.end(), i);
