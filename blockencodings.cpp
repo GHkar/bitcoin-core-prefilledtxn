@@ -33,7 +33,7 @@ CBlockHeaderAndShortTxIDs::CBlockHeaderAndShortTxIDs(const CBlock& block, bool f
     else
 	    prefilledtxn.resize(pfsize);
 
-    if (block.vtx.size() == 1)		 // the block include one transaction, that coinbase
+    if (block.vtx.size() == 1)		 // the block contains only one transaction, which is coinbase
     {
 	prefilledtxn[0] = {0, block.vtx[0]};
     	for (size_t i = 1; i < block.vtx.size(); i++) {
