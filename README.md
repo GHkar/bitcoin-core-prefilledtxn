@@ -6,10 +6,29 @@
 
 또한, 트랜잭션을 요청하는 원인 중 하나는 트랜잭션의 수수료와 크기가 큰 경우임. 트랜잭션의 수수료와 크기가 크면 마이너가 트랜잭션을 블록에 포함할 확률이 높아지고, 이는 곧 트랜잭션의 전파가 되기도 전에 블록에 포함될 수도 있기 때문. 이 트랜잭션들은 원래 개발자가 의도한 대로 수신 피어가 없을 것으로 추정되는 트랜잭션임. 더불어 블록에 포함된 트랜잭션 중, 송신 피어의 메모리 풀에 유입된 후 얼마 되지 않은 트랜잭션도 의도와 같은 트랜잭션임. 메모리 풀에 들어온 시각이 최신이라면, 다른 노드에게 전파되지 않았을 수도 있기 때문.   
 
-따라서 PREFILLEDTXN 필드를 사용하여 수수료와 크기가 크고 최근 메모리 풀에 진입한 트랜잭션을 포함하여 수신 노드에 보내, 추가 릴레이 과정이 발생하지 않게 함으로써 블록 전파 지연을 줄임. 해당 코드를 구현한 것.
+따라서 PREFILLEDTXN 필드를 사용하여 수수료와 크기가 크고 최근 메모리 풀에 진입한 트랜잭션(m-time)을 포함하여 수신 노드에 보내, 추가 릴레이 과정이 발생하지 않게 함으로써 블록 전파 지연을 줄임.
+
+PREFIILEDTXN에 트랜잭션을 담을 수 있도록 코드가 수정됨. 수정된 코드는 블록에 담긴 트랜잭션을 수수료, 크기, m-time에 따라 내림차순으로 정렬하고, PREFILLEDTXN에 상위 n개의 트랜잭션을 포함하는 코드.
+
 
 ## How to Implementation
-asdfasdf
+* blockencoding.cpp
+- 블록에 포함된 트랜잭션을 GenTxid형태로 바꾸고, vector로 선언하여 리스트를 만들어줌. 단!, 코인베이스는 포함하지 않음
+<pre>
+<code>
+std::vector<GenTxid> gtx;
+    for (size_t i = 1; i < block.vtx.size(); i++){
+        const CTransaction& t = *block.vtx[i];
+        GenTxid gtxid{false, t.GetHash()};
+        gtx.push_back(gtxid);
+        LogPrint(BCLog::NET, "KAR's Log GTX %s\n", gtx[i].GetHash().ToString());
+    }
+
+    LogPrint(BCLog::NET, "KAR's Log GTX Size %d\n", gtx.size());
+    LogPrint(BCLog::NET, "KAR's Log GTX VTX Size %d\n", block.vtx.size());
+</code>
+</pre>
+
 
 ## How to Use
 
