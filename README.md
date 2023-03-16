@@ -119,7 +119,7 @@ bool compareTime(std::pair<int, int> a, std::pair<int,int> b);
   >* 각 구간별 걸린 시간을 측정하기 위해서 log 를 찍음
 <pre>
 <code>
- #include <algorithm>
+ #include \<algorithm\>
  
  LogPrint(BCLog::NET, "KAR's Log Start\n");
 
