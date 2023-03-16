@@ -13,8 +13,9 @@ asdfasdf
 
 ## How to Use
 
-**Bitcoin Core Version**   
-v0.20.99.0-30568d3f
+**Bitcoin Core Version**  v0.20.99.0-30568d3f
+
+* * *
 
 > **관련 논문**   
 * 비트코인 네트워크의 압축 블록 전달 지연 개선 / 김애리[저]
