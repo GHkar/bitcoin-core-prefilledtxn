@@ -115,8 +115,8 @@ bool compareTime(std::pair<int, int> a, std::pair<int,int> b);
   >* Fee를 기준으로 정렬하는 코드를 구현하고 algorithm 라이브러리를 통해 sorting
   >* 상단에 헤더 파일 포함 필요   
   >* 또한, index를 이용해서 prefilledtxn을 채워야 하기 때문에 새로운 자료형
-   std::vector<std::pair<int, long long int>> indexAndFee; 선언 해줌
-   --> pair에 대한 접근은 indexAndFee.first      indexAndFee.second 로 하면 됨   
+   std::vector<std::pair<int, long long int>> indexAndFee; 선언 해줌   
+  >  --> pair에 대한 접근은 indexAndFee.first      indexAndFee.second 로 하면 됨   
 
   >* 각 구간별 걸린 시간을 측정하기 위해서 log 를 찍음
 <pre>
