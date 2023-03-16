@@ -13,7 +13,7 @@ PREFIILEDTXN에 트랜잭션을 담을 수 있도록 코드가 수정됨. 수정
 
 ## How to Implementation
 * blockencoding.cpp
-- 블록에 포함된 트랜잭션을 GenTxid형태로 바꾸고, vector로 선언하여 리스트를 만들어줌. 단!, 코인베이스는 포함하지 않음
+  - 블록에 포함된 트랜잭션을 GenTxid형태로 바꾸고, vector로 선언하여 리스트를 만들어줌. 단!, 코인베이스는 포함하지 않음
 <pre>
 <code>
 std::vector<GenTxid> gtx;
