@@ -12,7 +12,8 @@ PREFIILEDTXN에 트랜잭션을 담을 수 있도록 코드가 수정됨. 수정
 
 
 ## How to Implementation
-1. **blockencoding.cpp / Line 24** 블록에 포함된 트랜잭션을 GenTxid형태로 바꾸고, vector로 선언하여 리스트를 만들어줌. 단! 코인베이스는 포함하지 않음
+1. **blockencoding.cpp / Line 24**   
+블록에 포함된 트랜잭션을 GenTxid형태로 바꾸고, vector로 선언하여 리스트를 만들어줌. 단! 코인베이스는 포함하지 않음
 <pre>
 <code>
 std::vector<GenTxid> gtx;
@@ -28,13 +29,56 @@ std::vector<GenTxid> gtx;
 </code>
 </pre>
 
-2. **txmempool.h / Line 737** 함수 구현전 헤더파일에 함수 선언
+2. **txmempool.h / Line 737**   
+함수 구현전 헤더파일에 함수 선언
 <pre>
 <code>
 std::vector<TxMempoolInfo> prefilledinfo(std::vector<GenTxid> gtx);
 </code>
 </pre>
 
+3. **txmempool.cpp / Line 823**   
+벡터 형태로 호출하면 해당하는 값의 info를 얻고 이를 벡터로 만들어서 반환
+<pre>
+<code>
+std::vector<TxMempoolInfo> CTxMemPool::prefilledinfo(std::vector<GenTxid> gtx){
+        LOCK(cs);
+        std::vector<TxMempoolInfo> ret;
+        ret.reserve(gtx.size());
+        for (size_t i = 0; i < gtx.size(); i++){
+                GenTxid gtxid = gtx[i];
+                ret.push_back(info(gtxid));
+        }
+        return ret;
+}
+</code>
+</pre>
+
+4. **blockencodings.h / Line 107**   
+Mempool 객체를 받아오기 위해서 함수 형태 수정, CBlockHeaderAndShortTxIDs 함수에 멤풀 매개변수 추가
+<pre>
+<code>
+CBlockHeaderAndShortTxIDs(const CBlock& block, bool fUseWTXID, CTxMemPool *m_mempool);
+</code>
+</pre>
+
+5. **blockencodings.h / Line 107**   
+역시나 함수에 매개변수 추가 후, txmempool에 구현한 함수를 호출하고 로그를 찍어봄
+ 
+<pre>
+<code>
+    CTxMemPool *mp = m_mempool;
+    std::vector<TxMempoolInfo> btxinfo = mp->prefilledinfo(gtx);
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled0 %lld\n", btxinfo[0].fee);
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled1 %lld\n", btxinfo[1].fee);
+
+    prefilledtxn[0] = {0, block.vtx[0]};
+    for (size_t i = 1; i < block.vtx.size(); i++) {
+        const CTransaction& tx = *block.vtx[i];
+        shorttxids[i - 1] = GetShortID(fUseWTXID ? tx.GetWitnessHash() : tx.GetHash());
+    }
+</code>
+</pre>
 
 ## How to Use
 
