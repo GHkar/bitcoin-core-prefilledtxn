@@ -1,4 +1,4 @@
-## bitcoin-core-prefilledtxn
+## Bitcoin-core-prefilledtxn
 : ‘PREFILLEDTXN’ 은 압축 블록 패킷(헤더)의 필드 중 하나로 코인베이스 트랜잭션을 제공. 또한 수신 피어가 없을 것으로 추정하는 트랜잭션도 포함.
 압축 블록을 개발한 개발자는 이같이 소개하고 있으나, 실제로 블록의 PREFILLEDTXN에는 코인베이스 트랜잭션, 단 하나의 거래만 있음. 즉 다른 거래가 포함되지 않고 필드의 목적이 충족되지 않음. 비트코인 코어의 코드에서도 PREFILLEDTXN은 코인베이스만 채우고 있음.   
 
@@ -13,6 +13,8 @@ asdfasdf
 
 ## How to Use
 
+**Bitcoin Core Version**   
+v0.20.99.0-30568d3f
 
 > **관련 논문**   
 * 비트코인 네트워크의 압축 블록 전달 지연 개선 / 김애리[저]
