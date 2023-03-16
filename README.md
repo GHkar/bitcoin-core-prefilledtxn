@@ -28,6 +28,13 @@ std::vector<GenTxid> gtx;
 </code>
 </pre>
 
+2. **txmempool.h / Line 737** 함수 구현전 헤더파일에 함수 선언
+<pre>
+<code>
+std::vector<TxMempoolInfo> prefilledinfo(std::vector<GenTxid> gtx);
+</code>
+</pre>
+
 
 ## How to Use
 
