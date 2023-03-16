@@ -42,14 +42,14 @@ std::vector<TxMempoolInfo> prefilledinfo(std::vector<GenTxid> gtx);
 <pre>
 <code>
 std::vector<TxMempoolInfo> CTxMemPool::prefilledinfo(std::vector<GenTxid> gtx){
-        LOCK(cs);
-        std::vector<TxMempoolInfo> ret;
-        ret.reserve(gtx.size());
-        for (size_t i = 0; i < gtx.size(); i++){
-                GenTxid gtxid = gtx[i];
-                ret.push_back(info(gtxid));
-        }
-        return ret;
+     LOCK(cs);
+     std::vector<TxMempoolInfo> ret;
+     ret.reserve(gtx.size());
+     for (size_t i = 0; i < gtx.size(); i++){
+             GenTxid gtxid = gtx[i];
+             ret.push_back(info(gtxid));
+     }
+     return ret;
 }
 </code>
 </pre>
@@ -64,21 +64,119 @@ CBlockHeaderAndShortTxIDs(const CBlock& block, bool fUseWTXID, CTxMemPool *m_mem
 
 5. **blockencodings.h / Line 107**   
 역시나 함수에 매개변수 추가 후, txmempool에 구현한 함수를 호출하고 로그를 찍어봄
- 
 <pre>
 <code>
+CTxMemPool *mp = m_mempool;
+std::vector<TxMempoolInfo> btxinfo = mp->prefilledinfo(gtx);
+LogPrint(BCLog::NET, "KAR's Log GTX prefilled0 %lld\n", btxinfo[0].fee);
+LogPrint(BCLog::NET, "KAR's Log GTX prefilled1 %lld\n", btxinfo[1].fee);
+
+prefilledtxn[0] = {0, block.vtx[0]};
+for (size_t i = 1; i < block.vtx.size(); i++) {
+     const CTransaction& tx = *block.vtx[i];
+     shorttxids[i - 1] = GetShortID(fUseWTXID ? tx.GetWitnessHash() : tx.GetHash());
+}
+</code>
+</pre>
+
+6. **net_processing.cpp / Line 1308, 1652, 4255, 4265**   
+CBlockHeaderAndShortTxIDs shortIDs를 호출할 때 mempool 매개변수 전달하는 부분 추가
+<pre>
+<code>
+1308
+std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock = std::make_shared<const CBlockHeaderAndShortTxIDs> (*pblock, true, &m_mempool);
+
+1652
+CBlockHeaderAndShortTxIDs cmpctblock(*pblock, fPeerWantsWitness, &mempool);
+
+4255
+CBlockHeaderAndShortTxIDs cmpctblock(*most_recent_block, state.fWantsCmpctWitness, &m_mempool);
+
+4265
+CBlockHeaderAndShortTxIDs cmpctblock(block, state.fWantsCmpctWitness, &m_mempool);
+</code>
+</pre>
+
+7. **blockencodings.h / Line 18**   
+정렬하는 코드를 위해 헤더 파일에 함수 선언
+상단에 헤더 파일 포함 필요
+<pre>
+<code>
+ #include <txmempool.h>
+ 
+bool compareFee(std::pair<int, long long int> a, std::pair<int, long long int> b);
+bool compareSize(std::pair<int, unsigned int> a, std::pair<int, unsigned int> b);
+bool compareTime(std::pair<int, int> a, std::pair<int,int> b);
+</code>
+</pre>
+
+
+8. **blockencodings.cpp / Line 38**   
+  * Fee를 기준으로 정렬하는 코드를 구현하고 algorithm 라이브러리를 통해 sorting
+  * 상단에 헤더 파일 포함 필요   
+  * 또한, index를 이용해서 prefilledtxn을 채워야 하기 때문에 새로운 자료형
+   std::vector<std::pair<int, long long int>> indexAndFee; 선언 해줌
+   --> pair에 대한 접근은 indexAndFee.first      indexAndFee.second 로 하면 됨   
+
+  * 각 구간별 걸린 시간을 측정하기 위해서 log 를 찍음
+<pre>
+<code>
+ #include <algorithm>
+ 
+ LogPrint(BCLog::NET, "KAR's Log Start\n");
+
+    std::vector<GenTxid> gtx;
+    for (size_t i = 1; i < block.vtx.size(); i++)
+    {
+        const CTransaction& t = *block.vtx[i];
+        GenTxid gtxid{false, t.GetHash()};
+        gtx.push_back(gtxid);
+    }
+
+    LogPrint(BCLog::NET, "KAR's Log Load TxInfo %d\n", block.vtx.size());
+
     CTxMemPool *mp = m_mempool;
     std::vector<TxMempoolInfo> btxinfo = mp->prefilledinfo(gtx);
-    LogPrint(BCLog::NET, "KAR's Log GTX prefilled0 %lld\n", btxinfo[0].fee);
-    LogPrint(BCLog::NET, "KAR's Log GTX prefilled1 %lld\n", btxinfo[1].fee);
 
-    prefilledtxn[0] = {0, block.vtx[0]};
+    LogPrint(BCLog::NET, "KAR's Log Make indexVector\n");
+
+    std::vector<std::pair<int,long long int>> indexAndFee;
+
+    for (size_t i = 0; i < btxinfo.size(); i++)
+    {
+            indexAndFee.push_back(std::pair<int,long long int>(i+1, btxinfo[i].fee));
+    }
+
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled0 %d : %lld\n", indexAndFee[0].first,  indexAndFee[0].second);
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled1 %d : %lld\n", indexAndFee[1].first,  indexAndFee[1].second);
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled2 %d : %lld\n", indexAndFee[2].first,  indexAndFee[2].second);
+
+
+
+    LogPrint(BCLog::NET, "KAR's Log Sorting\n");
+
+    sort(indexAndFee.begin(), indexAndFee.end(), compareFee);
+
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled0 %d : %lld\n", indexAndFee[0].first,  indexAndFee[0].second);
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled1 %d : %lld\n", indexAndFee[1].first,  indexAndFee[1].second);
+    LogPrint(BCLog::NET, "KAR's Log GTX prefilled2 %d : %lld\n", indexAndFee[2].first,  indexAndFee[2].second);
+
+
+    LogPrint(BCLog::NET, "KAR's Log PrefilledTxn\n");
+
     for (size_t i = 1; i < block.vtx.size(); i++) {
         const CTransaction& tx = *block.vtx[i];
         shorttxids[i - 1] = GetShortID(fUseWTXID ? tx.GetWitnessHash() : tx.GetHash());
     }
+}
+
+bool compareFee(std::pair<int,long long int> a, std::pair<int,long long int> b)
+{
+        return a.second > b.second;
+}
 </code>
 </pre>
+
 
 ## How to Use
 
