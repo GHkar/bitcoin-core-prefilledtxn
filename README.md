@@ -175,12 +175,93 @@ bool compareFee(std::pair<int,long long int> a, std::pair<int,long long int> b)
 </code>
 </pre>
 
-9. prefilledtxn 추가하는 13번 부터 기입 헤더파일
+9. **blockencodings.h / Line 83**
+compareIndex 함수를 선언 해줌
+prefilledtxn을 선언하고 난 이후에 선언해주어야 함
+<pre>
+<code>
+bool compareIndex(PrefilledTransaction a, PrefilledTransaction b);
+</code>
+</pre>
 
-10. shorttxid
+10. **blockencodings.cpp**   
+  >* prefilledtxn에 트랜잭션 넣어주기 (코인 베이스 트랜잭션은 기존대로 넣고, 이후 for 문을 통해서 채움 // 코인 베이스르 제외 했기 때문에 index에 유의해서 넣어주어야 함)
+  >* 또한, 한번 더 sorting을 해주어서 prefilledtxn을 오름차순으로 정렬해줌 // 받은 노드가 처리할 때 인덱스가 낮은 순서대로 처리될 필요가 있음
+<pre>
+<code>
+ std::vector<int> prefilledindex;
+    std::vector<int>::iterator it;
 
-11. change index
+    prefilledtxn[0] = {0, block.vtx[0]};
 
+    for (size_t i = 1; i < 11; i++)
+    {
+            uint16_t index = indexAndFee[i-1].first;
+            prefilledtxn[i] = {index, block.vtx[index]};
+            prefilledindex.push_back(index);
+            LogPrint(BCLog::NET, "KAR's Log prefilled %d : %d\n", i, index);
+
+    }
+
+    LogPrint(BCLog::NET, "KAR's Log Sorting prefilledtxn\n");
+
+    sort(prefilledtxn.begin(), prefilledtxn.end(), compareIndex);
+
+    LogPrint(BCLog::NET, "KAR's Log Sorted prefilled 0: %d\n", prefilledtxn[0].index);
+    LogPrint(BCLog::NET, "KAR's Log Sorted prefilled 1: %d\n", prefilledtxn[1].index);
+    LogPrint(BCLog::NET, "KAR's Log Sorted prefilled 2: %d\n", prefilledtxn[2].index);
+}
+
+
+bool compareIndex(PrefilledTransaction a, PrefilledTransaction b)
+{
+        return a.index < b.index;
+}
+</code>
+</pre>
+
+
+11. **blockencodings.cpp**
+shorttxids 인덱스에 차례대로 넣을 수 있도록 변수 하나 선언해주고, find 함수를 사용해 prefilledtxn으로 채운 트랜잭션에 대해서는 제외하고 shorttxid를 만듦
+<pre>
+<code>
+LogPrint(BCLog::NET, "KAR's Log Make Shortids\n");
+
+size_t stindex = 0;
+for (size_t i = 1; i < block.vtx.size(); i++) {
+    it = std::find(prefilledindex.begin(), prefilledindex.end(), i);
+    if (it == prefilledindex.end())
+    {
+      const CTransaction& tx = *block.vtx[i];
+      shorttxids[stindex++] = GetShortID(fUseWTXID ? tx.GetWitnessHash() : tx.GetHash());
+    }
+}
+shorttxids.resize(shorttxids.size() - 10);
+LogPrint(BCLog::NET, "KAR's Log Shortids size %d\n", shorttxids.size());
+</code>
+</pre>
+
+12. **blockencodings.cpp**
+> prefilledtxn 인덱스 값 넘겨줄 때에 원래 코드대로면   
+> 각 txn 인덱스 사이의 값을 보내줘야 함   
+> 예를 들어서 1 5 24 면   
+> 코인베이스 0   
+> 1 == 1 (1 - 0 )   
+> 5 == 4 ( 5 - 1 )   
+> 24 == 19  (24 - 5)   
+   
+--> prefilledindex는 필요함, 있는지 없는지 확인하기 위해서
+<pre>
+<code>
+LogPrint(BCLog::NET, "KAR's Log Change index\n");
+
+prefilledtxn[1].index = uint16_t(prefilledindex[0] - 1);
+for (size_t i = 2; i < pfsize; i++)
+{
+        prefilledtxn[i].index = uint16_t(prefilledindex[i-1] - prefilledindex[i-2] - 1);
+}
+</code>
+</pre>
 
 ## How to Use
 
