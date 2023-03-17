@@ -102,7 +102,7 @@ CBlockHeaderAndShortTxIDs cmpctblock(block, state.fWantsCmpctWitness, &m_mempool
 상단에 헤더 파일 포함 필요
 <pre>
 <code>
- #include \<txmempool.h\>
+ #include < txmempool.h >
  
 bool compareFee(std::pair<int, long long int> a, std::pair<int, long long int> b);
 bool compareSize(std::pair<int, unsigned int> a, std::pair<int, unsigned int> b);
@@ -119,7 +119,7 @@ bool compareTime(std::pair<int, int> a, std::pair<int,int> b);
   >* 각 구간별 걸린 시간을 측정하기 위해서 log 를 찍음
 <pre>
 <code>
- #include \< algorithm \>
+ #include < algorithm >
  
  LogPrint(BCLog::NET, "KAR's Log Start\n");
 
