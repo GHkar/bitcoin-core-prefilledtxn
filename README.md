@@ -254,7 +254,7 @@ for (size_t i = 2; i < pfsize; i++)
 
 1. 해당 코드를 다운 받고, /bitcoin/src/ 폴더에 붙여넣기 해줌 (기존 파일에 덮어씌우기)
 
-2. **blockencodings.cpp / Line 27**
+2. **blockencodings.cpp / Line 27**   
 Prefilled-txn에 몇 개의 트랜잭션을 넣을 건지 지정
 <pre>
 <code>
@@ -269,6 +269,9 @@ make
 make install
 </code>
 </pre>
+
+* **Bitcoin Core Version**   
+v0.20.99.0-30568d3f1
 
 
 * * *
