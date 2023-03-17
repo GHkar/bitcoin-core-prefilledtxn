@@ -111,7 +111,7 @@ bool compareTime(std::pair<int, int> a, std::pair<int,int> b);
 </pre>
 
 
-8. **blockencodings.cpp / Line 38**   
+8. **blockencodings.cpp / Line 28**   
   >* Fee를 기준으로 정렬하는 코드를 구현하고 algorithm 라이브러리를 통해 sorting
   >* 상단에 헤더 파일 포함 필요   
   >* 또한, index를 이용해서 prefilledtxn을 채워야 하기 때문에 새로운 자료형 std::vector<std::pair<int, long long int>> indexAndFee; 선언 해줌   
@@ -159,13 +159,6 @@ bool compareTime(std::pair<int, int> a, std::pair<int,int> b);
     LogPrint(BCLog::NET, "KAR's Log GTX prefilled1 %d : %lld\n", indexAndFee[1].first,  indexAndFee[1].second);
     LogPrint(BCLog::NET, "KAR's Log GTX prefilled2 %d : %lld\n", indexAndFee[2].first,  indexAndFee[2].second);
 
-
-    LogPrint(BCLog::NET, "KAR's Log PrefilledTxn\n");
-
-    for (size_t i = 1; i < block.vtx.size(); i++) {
-        const CTransaction& tx = *block.vtx[i];
-        shorttxids[i - 1] = GetShortID(fUseWTXID ? tx.GetWitnessHash() : tx.GetHash());
-    }
 }
 
 bool compareFee(std::pair<int,long long int> a, std::pair<int,long long int> b)
@@ -184,34 +177,29 @@ bool compareIndex(PrefilledTransaction a, PrefilledTransaction b);
 </code>
 </pre>
 
-10. **blockencodings.cpp**   
+10. **blockencodings.cpp / Line 97**   
   >* prefilledtxn에 트랜잭션 넣어주기 (코인 베이스 트랜잭션은 기존대로 넣고, 이후 for 문을 통해서 채움 // 코인 베이스르 제외 했기 때문에 index에 유의해서 넣어주어야 함)
   >* 또한, 한번 더 sorting을 해주어서 prefilledtxn을 오름차순으로 정렬해줌 // 받은 노드가 처리할 때 인덱스가 낮은 순서대로 처리될 필요가 있음
 <pre>
 <code>
- std::vector<int> prefilledindex;
-    std::vector<int>::iterator it;
+LogPrint(BCLog::NET, "KAR's Log PrefilledTxn\n");
 
-    prefilledtxn[0] = {0, block.vtx[0]};
+std::vector<int> prefilledindex;
+std::vector<int>::iterator it;
 
-    for (size_t i = 1; i < 11; i++)
-    {
-            uint16_t index = indexAndFee[i-1].first;
-            prefilledtxn[i] = {index, block.vtx[index]};
-            prefilledindex.push_back(index);
-            LogPrint(BCLog::NET, "KAR's Log prefilled %d : %d\n", i, index);
+prefilledtxn[0] = {0, block.vtx[0]};	 // input coinbase
 
-    }
-
-    LogPrint(BCLog::NET, "KAR's Log Sorting prefilledtxn\n");
-
-    sort(prefilledtxn.begin(), prefilledtxn.end(), compareIndex);
-
-    LogPrint(BCLog::NET, "KAR's Log Sorted prefilled 0: %d\n", prefilledtxn[0].index);
-    LogPrint(BCLog::NET, "KAR's Log Sorted prefilled 1: %d\n", prefilledtxn[1].index);
-    LogPrint(BCLog::NET, "KAR's Log Sorted prefilled 2: %d\n", prefilledtxn[2].index);
+for (size_t i = 1; i < pfsize; i++)
+{
+    uint16_t index = indexAndInfo[i-1].first;
+    prefilledtxn[i] = {index, block.vtx[index]};
+    prefilledindex.push_back(index);
 }
 
+LogPrint(BCLog::NET, "KAR's Log Sorting prefilledtxn\n");
+// index list and prefilledtxn list sorting
+sort(prefilledtxn.begin(), prefilledtxn.end(), compareIndex);
+sort(prefilledindex.begin(), prefilledindex.end());
 
 bool compareIndex(PrefilledTransaction a, PrefilledTransaction b)
 {
@@ -221,7 +209,7 @@ bool compareIndex(PrefilledTransaction a, PrefilledTransaction b)
 </pre>
 
 
-11. **blockencodings.cpp**
+11. **blockencodings.cpp / Line 126**
 shorttxids 인덱스에 차례대로 넣을 수 있도록 변수 하나 선언해주고, find 함수를 사용해 prefilledtxn으로 채운 트랜잭션에 대해서는 제외하고 shorttxid를 만듦
 <pre>
 <code>
@@ -241,7 +229,7 @@ LogPrint(BCLog::NET, "KAR's Log Shortids size %d\n", shorttxids.size());
 </code>
 </pre>
 
-12. **blockencodings.cpp**
+12. **blockencodings.cpp / Line 116**
 > prefilledtxn 인덱스 값 넘겨줄 때에 원래 코드대로면   
 > 각 txn 인덱스 사이의 값을 보내줘야 함   
 > 예를 들어서 1 5 24 면   
@@ -265,7 +253,24 @@ for (size_t i = 2; i < pfsize; i++)
 
 ## How to Use
 
-**Bitcoin Core Version**  v0.20.99.0-30568d3f
+1. 해당 코드를 다운 받고, /bitcoin/src/ 폴더에 붙여넣기 해줌 (기존 파일에 덮어씌우기)
+
+2. **blockencodings.cpp / Line 27**
+Prefilled-txn에 몇 개의 트랜잭션을 넣을 건지 지정
+<pre>
+<code>
+size_t pfsize = 30;
+</code>
+</pre>
+
+3. make 명령어를 통해 코드 수정 내용을 반영 후 비트코인 가동
+<pre>
+<code>
+make
+make install
+</code>
+</pre>
+
 
 * * *
 
