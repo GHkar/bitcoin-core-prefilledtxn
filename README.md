@@ -209,7 +209,7 @@ bool compareIndex(PrefilledTransaction a, PrefilledTransaction b)
 </pre>
 
 
-11. **blockencodings.cpp / Line 126**
+11. **blockencodings.cpp / Line 126**   
 shorttxids 인덱스에 차례대로 넣을 수 있도록 변수 하나 선언해주고, find 함수를 사용해 prefilledtxn으로 채운 트랜잭션에 대해서는 제외하고 shorttxid를 만듦
 <pre>
 <code>
@@ -236,9 +236,8 @@ LogPrint(BCLog::NET, "KAR's Log Shortids size %d\n", shorttxids.size());
 > 코인베이스 0   
 > 1 == 1 (1 - 0 )   
 > 5 == 4 ( 5 - 1 )   
-> 24 == 19  (24 - 5)   
-   
---> prefilledindex는 필요함, 있는지 없는지 확인하기 위해서
+> 24 == 19  (24 - 5)    
+> --> prefilledindex는 필요함, 있는지 없는지 확인하기 위해서
 <pre>
 <code>
 LogPrint(BCLog::NET, "KAR's Log Change index\n");
