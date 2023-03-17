@@ -102,7 +102,7 @@ CBlockHeaderAndShortTxIDs cmpctblock(block, state.fWantsCmpctWitness, &m_mempool
 상단에 헤더 파일 포함 필요
 <pre>
 <code>
- #include <txmempool.h>
+ #include \<txmempool.h\>
  
 bool compareFee(std::pair<int, long long int> a, std::pair<int, long long int> b);
 bool compareSize(std::pair<int, unsigned int> a, std::pair<int, unsigned int> b);
