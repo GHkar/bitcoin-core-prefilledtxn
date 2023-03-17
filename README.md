@@ -270,7 +270,7 @@ make install
 </code>
 </pre>
 
-* **Bitcoin Core Version**
+* **Bitcoin Core Version**   
 v0.20.99.0-30568d3f1
 
 * **Bitcoin Core Github**   
